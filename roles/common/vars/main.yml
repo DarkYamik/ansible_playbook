@@ -1,0 +1,6 @@
+---
+paquete_apache:          
+  - php
+  - apache2
+  - mysql-client
+  - mysql-server

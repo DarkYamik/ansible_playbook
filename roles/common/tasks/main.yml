@@ -1,0 +1,18 @@
+---
+
+- name: Instalacion de Apache con modulos
+  package: 
+    name: "{{ paquete_apache }}"
+    state: latest
+
+- name: Restart Apache
+  action: service name=apache2 state=restarted
+    
+- name: Copiar index.html
+  copy:
+    content: >
+      <h1>Hello Ansible</h1>
+    dest: /var/www/html/index.html
+
+- name: Actualizar repositorios
+  command: sudo apt-get update

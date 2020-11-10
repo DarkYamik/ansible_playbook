@@ -1,0 +1,24 @@
+---
+- name: Instalar paquetes necesarios para docker
+  package: 
+    name: "{{ docker_required_packages }}"
+    state: latest
+
+- name: Añadir llave pgp
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Añadir repositorio Docker
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu bionic stable
+    state: present
+
+- name: Actualizar repositorios Docker
+  apt:
+    update_cache: yes
+
+- name: Instalar Docker
+  package: 
+    name: "{{ docker_packages }}"
+    state: latest
