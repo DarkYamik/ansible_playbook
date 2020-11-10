@@ -9,10 +9,11 @@
   action: service name=apache2 state=restarted
     
 - name: Copiar index.html
-  copy:
-    content: >
-      <h1>Hello Ansible</h1>
+  template: 
+    src: index.html.j2
     dest: /var/www/html/index.html
+    mode: 0777 #Esto es pecado mortal, solo como testing
+
 
 - name: Actualizar repositorios
   command: sudo apt-get update
