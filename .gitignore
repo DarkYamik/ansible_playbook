@@ -17,4 +17,4 @@ venv.bak/
 *.retry
 
 #DS_store
-*.DS_Store
+.DS_Store
