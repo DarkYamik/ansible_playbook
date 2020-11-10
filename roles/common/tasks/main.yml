@@ -5,6 +5,13 @@
     name: "{{ paquete_apache }}"
     state: latest
 
+- name: Cambiar puerto al definido en variable
+  lineinfile:
+    path: /etc/apache2/ports.conf
+    regexp: '^Listen '
+    insertafter: '^#Listen '
+    line: 'Listen {{ apache_port }}'
+
 - name: Restart Apache
   action: service name=apache2 state=restarted
     
