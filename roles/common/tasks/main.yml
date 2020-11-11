@@ -10,7 +10,7 @@
     path: /etc/apache2/ports.conf
     regexp: '^Listen '
     insertafter: '^#Listen '
-    line: 'Listen {{ apache_port }}'
+    line: 'Listen {{ apache_port }}' 
 
 - name: Restart Apache
   action: service name=apache2 state=restarted

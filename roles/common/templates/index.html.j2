@@ -5,5 +5,7 @@
 {% for paquete in paquete_apache  %}
     <li> {{ paquete }} </li>
 {% endfor  %}
+<h2> El servidor esta escuchando en el puerto {{ apache_port }} </h2>
 </ul>
+<h2> El texto encriptado dice {{ this_secret_text }} </h2>
 </html>
