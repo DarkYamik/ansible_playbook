@@ -1,0 +1,6 @@
+---
+- hosts: podman
+  become: true
+  become_user: root
+  roles: 
+   - role: podman

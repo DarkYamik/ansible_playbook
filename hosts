@@ -4,3 +4,5 @@ ubuntu1804
 [linux:children]
 ubuntu
 
+[podman]
+podmanubuntu1804

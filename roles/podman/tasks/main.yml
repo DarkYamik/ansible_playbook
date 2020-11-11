@@ -1,0 +1,30 @@
+---
+- name: Añadir repositorio Podman
+  apt_repository:
+    repo: ppa:projectatomic/ppa
+
+
+- name: Actualizar repositorios
+  apt:
+    update_cache: yes
+
+- name: Instalar podman
+  package:
+    name: podman
+    state: present
+
+
+
+- name: Run container
+  become_user: vagrant
+  containers.podman.podman_container:
+    name: echo
+    image: docker.io/nginx
+    state: started
+    ports:
+      - "8080:80"
+  register: podman_output
+
+- debug:
+    var: podman_output
+    
