@@ -8,4 +8,9 @@
 <h2> El servidor esta escuchando en el puerto {{ apache_port }} </h2>
 </ul>
 <h2> El texto encriptado dice {{ this_secret_text }} </h2>
+<h2> El siguiente texto tiene un valor por defecto, pero si la variable esta definida, 
+se muestra el contenido de esta {{ texto_default_inline | default('La variable estaba vacia') }} </h2>
+<h2> El siguiente texto tiene un valor por defecto, pero si la variable esta definida, 
+se muestra el contenido de esta {{ texto_default | default('La variable estaba vacia') }} </h2>
+<h2> Este texto tambien es una variable por defecto, pero esta vez esta en la carpeta defaults {{ defaults_folder_text }} </h2>
 </html>

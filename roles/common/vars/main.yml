@@ -7,3 +7,5 @@ paquete_apache:
 
 apache_port: 8081
 
+texto_default: |
+  Hello there general Kenobi
