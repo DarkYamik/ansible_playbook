@@ -4,5 +4,8 @@
   become_user: root
   roles: 
    - role: common
+     vars:
+      texto_default_inline: Texto declarado en la invocacion del rol
+
    - role: containers
 
