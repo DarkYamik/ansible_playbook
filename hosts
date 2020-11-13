@@ -6,3 +6,7 @@ ubuntu
 
 [podman]
 podmanubuntu1804
+
+[mysql]
+mysqlmaster
+mysqlslave

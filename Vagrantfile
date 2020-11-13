@@ -53,4 +53,46 @@ Vagrant.configure("2") do |config|
         # Necessary for ansible
         podmanubuntu1804.vm.provision "shell", inline: "sudo apt-get -y install python python-apt"
     end
+
+            # Ubuntu 18.04 Podman(Bionic)
+    config.vm.define "mysqlmaster", autostart: false do |mysqlmaster|
+        mysqlmaster.vm.box = "ubuntu/bionic64"
+        mysqlmaster.vm.box_check_update = true
+        mysqlmaster.vm.hostname = "mysqlmaster"
+        mysqlmaster.vm.network "public_network", auto_config: true
+        mysqlmaster.vm.provider "virtualbox" do |v|
+            v.name = "mysqlmaster"
+            v.memory = "512"
+            v.cpus = 1
+        end
+        mysqlmaster.hostmanager.ip_resolver = proc do |vm, resolving_vm|
+            if hostname = (vm.ssh_info && vm.ssh_info[:host])
+                `vagrant ssh mysqlmaster -c "hostname -I"`.split()[1]
+            end
+        end
+
+        # Necessary for ansible
+        mysqlmaster.vm.provision "shell", inline: "sudo apt-get -y install python python-apt"
+    end
+
+                # Ubuntu 18.04 Podman(Bionic)
+    config.vm.define "mysqlslave", autostart: false do |mysqlslave|
+        mysqlslave.vm.box = "ubuntu/bionic64"
+        mysqlslave.vm.box_check_update = true
+        mysqlslave.vm.hostname = "mysqlslave"
+        mysqlslave.vm.network "public_network", auto_config: true
+        mysqlslave.vm.provider "virtualbox" do |v|
+            v.name = "mysqlslave"
+            v.memory = "512"
+            v.cpus = 1
+        end
+        mysqlslave.hostmanager.ip_resolver = proc do |vm, resolving_vm|
+            if hostname = (vm.ssh_info && vm.ssh_info[:host])
+                `vagrant ssh mysqlslave -c "hostname -I"`.split()[1]
+            end
+        end
+
+        # Necessary for ansible
+        mysqlslave.vm.provision "shell", inline: "sudo apt-get -y install python python-apt"
+    end
 end
