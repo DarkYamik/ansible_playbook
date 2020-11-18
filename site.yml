@@ -1,3 +1,4 @@
 ---
 - import_playbook: frontend-containers.yml
 - import_playbook: podman.yml
+- import_playbook: mysql.yml

@@ -1,0 +1,14 @@
+---
+- hosts: mysqlmaster
+  become: true
+  become_user: root
+  roles: 
+   - role: mysql
+   - role: mysql-master
+
+- hosts: mysqlslave
+  become: true
+  become_user: root
+  roles:
+   - role: mysql
+   - role: mysql-slave

@@ -35,14 +35,17 @@ Vagrant.configure("2") do |config|
 
         # Ubuntu 18.04 Podman(Bionic)
     config.vm.define "podmanubuntu1804", autostart: false do |podmanubuntu1804|
-        podmanubuntu1804.vm.box = "ubuntu/bionic64"
+        podmanubuntu1804.vm.box = "generic/ubuntu1804"
+        
         podmanubuntu1804.vm.box_check_update = true
         podmanubuntu1804.vm.hostname = "podmanubuntu1804"
+        podmanubuntu1804.vm.disk :disk,  name: "main", size: "20GB"
         podmanubuntu1804.vm.network "public_network", auto_config: true
         podmanubuntu1804.vm.provider "virtualbox" do |v|
             v.name = "podmanubuntu1804"
-            v.memory = "512"
+            v.memory = "2048"
             v.cpus = 1
+           
         end
         podmanubuntu1804.hostmanager.ip_resolver = proc do |vm, resolving_vm|
             if hostname = (vm.ssh_info && vm.ssh_info[:host])
@@ -52,9 +55,10 @@ Vagrant.configure("2") do |config|
 
         # Necessary for ansible
         podmanubuntu1804.vm.provision "shell", inline: "sudo apt-get -y install python python-apt"
+
     end
 
-            # Ubuntu 18.04 Podman(Bionic)
+            # Ubuntu 18.04 Mysqlmaster
     config.vm.define "mysqlmaster", autostart: false do |mysqlmaster|
         mysqlmaster.vm.box = "ubuntu/bionic64"
         mysqlmaster.vm.box_check_update = true
@@ -64,6 +68,7 @@ Vagrant.configure("2") do |config|
             v.name = "mysqlmaster"
             v.memory = "512"
             v.cpus = 1
+            
         end
         mysqlmaster.hostmanager.ip_resolver = proc do |vm, resolving_vm|
             if hostname = (vm.ssh_info && vm.ssh_info[:host])
@@ -75,7 +80,7 @@ Vagrant.configure("2") do |config|
         mysqlmaster.vm.provision "shell", inline: "sudo apt-get -y install python python-apt"
     end
 
-                # Ubuntu 18.04 Podman(Bionic)
+                # Ubuntu 18.04 Mysqlslave
     config.vm.define "mysqlslave", autostart: false do |mysqlslave|
         mysqlslave.vm.box = "ubuntu/bionic64"
         mysqlslave.vm.box_check_update = true

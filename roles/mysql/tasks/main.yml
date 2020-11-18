@@ -1,0 +1,31 @@
+---
+- name: Coger repositorio
+  action:
+    shell: wget -c https://dev.mysql.com/get/mysql-apt-config_0.8.11-1_all.deb -O /tmp
+
+- name: Añadir repositorio
+  action:
+    shell: dpkg -i /tmp/mysql-apt-config_0.8.11-1_all.deb --silent
+
+
+- name: Actualizar repositorios
+  apt:
+    update_cache: yes
+
+- name: Instalar Mysql
+  package: 
+    name: "{{ mysql_packages }}"
+    state: latest
+
+- name: Mirar si Pymsql esta
+  become: true # needed if the other tasks are not played as root
+  pip:
+    name: pymysql
+    state: present
+
+- name: Configurar Bind IP
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: 'bind-address.*'
+    insertafter: 'bind-address.*'
+    line: 'bind-address = 0.0.0.0' 

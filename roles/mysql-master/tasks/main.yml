@@ -1,0 +1,70 @@
+---
+
+
+- name: Configurar Server ID
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '\#server-id.*= .*'
+    insertafter: '\#server-id.*= .*'
+    line: 'server-id = 1'
+  
+- name: Configurar LogBin
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '\#log_bin.*=.*'
+    insertafter: '\#log_bin.*=.*'
+    line: 'log_bin = /var/log/mysql/mysql-bin.log'
+
+- name: Crear BD
+  community.mysql.mysql_db:
+    login_user: root
+    login_password: ""
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    name: tastydb
+    state: present
+
+- name: Configurar BinLogdb
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '\#binlog_do_db.*=.*'
+    insertafter: '\#binlog_do_db.*=.*'
+    line: 'binlog_do_db = tastydb'
+
+- name: Reiniciar Mysql
+  action: service name=mysql state=restarted
+
+- name: Dar permisos a Slave
+  community.mysql.mysql_query:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    login_db: tastydb
+    query: GRANT REPLICATION SLAVE ON *.* TO 'slave_user'@'%' IDENTIFIED BY '{{ mysql_slave_password }}';
+
+- name: Flush Privileges
+  community.mysql.mysql_query:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    login_db: tastydb
+    query: FLUSH PRIVILEGES;
+
+- name: Read lock
+  community.mysql.mysql_query:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    login_db: tastydb
+    query: FLUSH TABLES WITH READ LOCK;
+
+- name: Guardar datos en sql dump
+  community.mysql.mysql_db:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    state: dump
+    name: tastydb
+    target: /tmp/dump.sql
+
+- name: Read unlock
+  community.mysql.mysql_query:
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    login_db: tastydb
+    query: UNLOCK TABLES;
+
+- name: Recuperar dump de MySQL
+  fetch:
+    src: /tmp/dump.sql
+    dest: /tmp/slave.sql

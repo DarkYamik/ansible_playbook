@@ -1,0 +1,17 @@
+---
+- name: Run container
+  become_user: vagrant
+  containers.podman.podman_container:
+    name: odelastic
+    image: docker.io/amazon/opendistro-for-elasticsearch
+    state: started
+    cmd_args:
+      - "-e 'discovery.type=single-node'"
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+  register: podman_output
+
+- debug:
+    var: podman_output
+    

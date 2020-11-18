@@ -15,15 +15,15 @@
 
 
 
-- name: Run container
-  become_user: vagrant
-  containers.podman.podman_container:
-    name: echo
-    image: docker.io/nginx
-    state: started
-    ports:
-      - "8080:80"
-  register: podman_output
+#- name: Run container
+#  become_user: vagrant
+#  containers.podman.podman_container:
+#    name: echo
+#    image: docker.io/nginx
+#    state: started
+#    ports:
+#      - "8080:80"
+#  register: podman_output
 
 - debug:
     var: podman_output
