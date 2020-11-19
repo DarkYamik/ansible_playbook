@@ -3,12 +3,18 @@
   become: true
   become_user: root
   roles: 
-   - role: mysql
+   - role: podman
+#   - role: mysql
    - role: mysql-master
+     vars:
+      server_id: 1
 
 - hosts: mysqlslave
   become: true
   become_user: root
   roles:
-   - role: mysql
+   - role: podman
+#   - role: mysql
    - role: mysql-slave
+     vars:
+      server_id: 2

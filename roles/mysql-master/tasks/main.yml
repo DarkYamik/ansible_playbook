@@ -1,70 +1,39 @@
 ---
+- name: crear directorio de configuracion
+  file:
+    path: /etc/mysql.conf
+    state: directory
+- name: crear directorio de datos
+  become_user: root
+  file:
+    path: /etc/mysql.data
+    state: directory
+- name: Copy my.cnf to remote host
+  template: 
+    src: my.cnf.j2
+    dest: /etc/mysql.conf/my.cnf
+    owner: "root"
+    group: "root"
+    mode: "0644"
 
+- name: Kill running container
+  become_user: vagrant
+  command: podman kill {{ inventory_hostname_short }} 
+  ignore_errors: yes
+- name: Delete old contaniner
+  become_user: vagrant
+  command: podman rm {{ inventory_hostname_short }}
+  ignore_errors: yes
 
-- name: Configurar Server ID
-  lineinfile:
-    path: /etc/mysql/mysql.conf.d/mysqld.cnf
-    regexp: '\#server-id.*= .*'
-    insertafter: '\#server-id.*= .*'
-    line: 'server-id = 1'
-  
-- name: Configurar LogBin
-  lineinfile:
-    path: /etc/mysql/mysql.conf.d/mysqld.cnf
-    regexp: '\#log_bin.*=.*'
-    insertafter: '\#log_bin.*=.*'
-    line: 'log_bin = /var/log/mysql/mysql-bin.log'
-
-- name: Crear BD
-  community.mysql.mysql_db:
-    login_user: root
-    login_password: ""
-    login_unix_socket: /var/run/mysqld/mysqld.sock
-    name: tastydb
-    state: present
-
-- name: Configurar BinLogdb
-  lineinfile:
-    path: /etc/mysql/mysql.conf.d/mysqld.cnf
-    regexp: '\#binlog_do_db.*=.*'
-    insertafter: '\#binlog_do_db.*=.*'
-    line: 'binlog_do_db = tastydb'
-
-- name: Reiniciar Mysql
-  action: service name=mysql state=restarted
-
-- name: Dar permisos a Slave
-  community.mysql.mysql_query:
-    login_unix_socket: /var/run/mysqld/mysqld.sock
-    login_db: tastydb
-    query: GRANT REPLICATION SLAVE ON *.* TO 'slave_user'@'%' IDENTIFIED BY '{{ mysql_slave_password }}';
-
-- name: Flush Privileges
-  community.mysql.mysql_query:
-    login_unix_socket: /var/run/mysqld/mysqld.sock
-    login_db: tastydb
-    query: FLUSH PRIVILEGES;
-
-- name: Read lock
-  community.mysql.mysql_query:
-    login_unix_socket: /var/run/mysqld/mysqld.sock
-    login_db: tastydb
-    query: FLUSH TABLES WITH READ LOCK;
-
-- name: Guardar datos en sql dump
-  community.mysql.mysql_db:
-    login_unix_socket: /var/run/mysqld/mysqld.sock
-    state: dump
-    name: tastydb
-    target: /tmp/dump.sql
-
-- name: Read unlock
-  community.mysql.mysql_query:
-    login_unix_socket: /var/run/mysqld/mysqld.sock
-    login_db: tastydb
-    query: UNLOCK TABLES;
-
-- name: Recuperar dump de MySQL
-  fetch:
-    src: /tmp/dump.sql
-    dest: /tmp/slave.sql
+- name: Run Mysql container
+  become_user: vagrant
+  command: >
+   podman run  -d \
+   --privileged \
+   --name {{ inventory_hostname_short }} \
+   --volume /etc/mysql.conf:/etc/mysql/conf.d/ \
+   --mount type=bind,src=/etc/mysql.data,dst=/etc/mysql.data \
+   -p=3306:3306/tcp \
+   -p=33060:33060/tcp \
+   -e MYSQL_ROOT_PASSWORD=password \
+   docker.io/mysql/mysql-server:latest

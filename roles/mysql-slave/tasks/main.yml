@@ -1,54 +1,38 @@
----
+- name: crear directorio de configuracion
+  file:
+    path: /etc/mysql.conf
+    state: directory
+- name: crear directorio de datos
+  become_user: root
+  file:
+    path: /etc/mysql.data
+    state: directory
+- name: Copy my.cnf to remote host
+  template: 
+    src: my.cnf.j2
+    dest: /etc/mysql.conf/my.cnf
+    owner: "root"
+    group: "root"
+    mode: "0644"
 
-- name: Copiar mysql dump 
-  copy:
-    src: /tmp/slave.sql
-    dest: /tmp/slave.sql
+- name: Kill running container
+  become_user: vagrant
+  command: podman kill {{ inventory_hostname_short }} 
+  ignore_errors: yes
+- name: Delete old contaniner
+  become_user: vagrant
+  command: podman rm {{ inventory_hostname_short }}
+  ignore_errors: yes
 
-- name: Crear BD
-  community.mysql.mysql_db:
-    login_user: root
-    login_password: ""
-    login_unix_socket: /var/run/mysqld/mysqld.sock
-    name: tastydb
-    state: present
-
-- name: Restore database
-  community.mysql.mysql_db:
-    login_user: root
-    login_password: ""
-    login_unix_socket: /var/run/mysqld/mysqld.sock
-    name: tastydb
-    state: import
-    target: /tmp/slave.sql/slave.sql/mysqlmaster/tmp/dump.sql
-
-- name: Configurar Server ID
-  lineinfile:
-    path: /etc/mysql/mysql.conf.d/mysqld.cnf
-    regexp: '\#server-id.*= .*'
-    insertafter: '\#server-id.*= .*'
-    line: 'server-id = 2'
-
-- name: Configurar LogBin
-  lineinfile:
-    path: /etc/mysql/mysql.conf.d/mysqld.cnf
-    regexp: '\#log_bin.*=.*'
-    insertafter: '\#log_bin.*=.*'
-    line: 'log_bin = /var/log/mysql/mysql-bin.log'
-
-- name: Configurar BinLogdb
-  lineinfile:
-    path: /etc/mysql/mysql.conf.d/mysqld.cnf
-    regexp: '\#binlog_do_db.*=.*'
-    insertafter: '\#binlog_do_db.*=.*'
-    line: 'binlog_do_db = tastydb'
-
-- name: Configurar Relay Log
-  lineinfile:
-    path: /etc/mysql/mysql.conf.d/mysqld.cnf
-    regexp: '\#relay_log.*=.*'
-    insertafter: '\#relay_log.*=.*'
-    line: 'relay-log = /var/log/mysql/mysql-relay-bin.log'
-
-- name: Reiniciar Mysql
-  action: service name=mysql state=restarted
+- name: Run Mysql container
+  become_user: vagrant
+  command: >
+   podman run  -d \
+   --privileged \
+   --name {{ inventory_hostname_short }} \
+   --volume /etc/mysql.conf:/etc/mysql/conf.d/ \
+   --mount type=bind,src=/etc/mysql.data,dst=/etc/mysql.data \
+   -p=3306:3306/tcp \
+   -p=33060:33060/tcp \
+   -e MYSQL_ROOT_PASSWORD=password \
+   docker.io/mysql/mysql-server:latest
