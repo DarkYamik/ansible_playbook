@@ -4,17 +4,19 @@
   become_user: root
   roles: 
    - role: podman
-#   - role: mysql
-   - role: mysql-master
+   - role: mysql
      vars:
       server_id: 1
+   - role: mysql-master
+     become_user: vagrant
 
 - hosts: mysqlslave
   become: true
   become_user: root
   roles:
    - role: podman
-#   - role: mysql
-   - role: mysql-slave
+   - role: mysql
      vars:
       server_id: 2
+   - role: mysql-slave
+     become_user: vagrant

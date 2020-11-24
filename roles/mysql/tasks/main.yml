@@ -1,6 +1,47 @@
 ---
-#- name: Pullear imagen de mysql
-#  containers.podman.podman_image:
-#    name: docker.io/mysql
-#    tag: latest
-  
+- name: crear directorio de configuracion
+  file:
+    path: /etc/mysql.conf
+    state: directory
+- name: crear directorio de datos
+  become_user: root
+  file:
+    path: /etc/mysql.data
+    state: directory
+- name: Copy my.cnf to remote host
+  template: 
+    src: my.cnf.j2
+    dest: /etc/mysql.conf/my.cnf
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: Kill running container
+  become_user: vagrant
+  command: podman kill {{ inventory_hostname_short }} 
+  ignore_errors: yes
+- name: Delete old contaniner
+  become_user: vagrant
+  command: podman rm {{ inventory_hostname_short }}
+  ignore_errors: yes
+
+- name: Wait for connection manager to catch up
+  pause:
+    seconds: 15
+
+- name: Run Mysql container
+  become_user: vagrant
+  command: >
+   podman run  -d \
+   --privileged \
+   --name {{ inventory_hostname_short }} \
+   --volume /etc/mysql.conf/my.cnf:/etc/my.cnf:ro \
+   --volume /etc/mysql.data:/etc/mysql/lib:rw \
+   -p=3306:3306/tcp \
+   -p=33060:33060/tcp \
+   -e MYSQL_ROOT_PASSWORD=password \
+   docker.io/mysql/mysql-server:latest
+  retries: 3
+  delay: 3
+  register: result
+  until: result.rc == 0
