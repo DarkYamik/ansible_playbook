@@ -4,16 +4,17 @@
     seconds: 30
 
 - name: Create Slave User
-  shell: podman exec -it {{ inventory_hostname_short }} mysql -uroot -ppassword -e "create user 'slave_user'@'%' identified by 'password';"
+  shell: podman exec -it {{ inventory_hostname_short }} mysql -uroot -p{{ mysql_master_password }} -e "create user 'slave_user'@'%' identified by '{{ mysql_slave_password }}';"
+  register: Slave_user_output
 
 - name: Give user replication permisions
-  shell: podman exec -it {{ inventory_hostname_short }} mysql -uroot -ppassword -e "grant replication slave on *.* to 'slave_user'@'%';"
+  shell: podman exec -it {{ inventory_hostname_short }} mysql -uroot -p{{ mysql_master_password }} -e "grant replication slave on *.* to 'slave_user'@'%';"
 
 - name: Give user replication permisions
-  shell: podman exec -it {{ inventory_hostname_short }} mysql -uroot -ppassword -e "FLUSH PRIVILEGES;"
+  shell: podman exec -it {{ inventory_hostname_short }} mysql -uroot -p{{ mysql_master_password }} -e "FLUSH PRIVILEGES;"
 
 - name: Show master status
-  shell: podman exec -it {{ inventory_hostname_short }} mysql -uroot -ppassword -e "show master status\G;"
+  shell: podman exec -it {{ inventory_hostname_short }} mysql -uroot -p{{ mysql_master_password }} -e "show master status\G;"
   register: master_status
 
 - set_fact:
@@ -22,9 +23,3 @@
 
 - set_fact:
     master_status_position: "{{ master_status.stdout | regex_search('Position: (.+)', '\\1') | first | regex_replace('\\r')}}"
-    
-
-- debug:
-    var: master_status_binlog
-- debug:
-    var: master_status_position
