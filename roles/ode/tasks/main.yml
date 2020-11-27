@@ -1,17 +1,45 @@
 ---
-- name: Run container
-  become_user: vagrant
-  containers.podman.podman_container:
-    name: odelastic
-    image: docker.io/amazon/opendistro-for-elasticsearch
-    state: started
-    cmd_args:
-      - "-e 'discovery.type=single-node'"
+# Instead of running 2 individual containers, we will run a pod with both containers in it
+- name: Crete pod 
+  become: true
+  become_user: root
+  containers.podman.podman_pod:
+    name: elk-stack
     ports:
       - "9200:9200"
       - "9600:9600"
+      - "5601:5601"
+    
+- name: Run Elasticsearch container 
+  become: true
+  become_user: root
+  containers.podman.podman_container:
+    name: odelastic
+    pod: elk-stack
+    image: docker.io/amazon/opendistro-for-elasticsearch
+    state: started
+    cmd_args:
+      - "-e discovery.type=single-node"
+#    ports:
+#      - "9200:9200"
+#      - "9600:9600"
   register: podman_output
 
-- debug:
-    var: podman_output
-    
+- name: Run Kibana container 
+  become: true
+  become_user: root
+  containers.podman.podman_container:
+    name: kibana
+    pod: elk-stack
+    image: docker.io/amazon/opendistro-for-elasticsearch-kibana:1.11.0
+    state: started
+    cmd_args:
+      - "-e=ELASTICSEARCH_URL=https://localhost:9200"
+      - "-e=ELASTICSEARCH_HOSTS=https://localhost:9200"
+      - "-e=ELASTICSEARCH_PASSWORD=admin"
+      - "-e=ELASTICSEARCH_USERNAME=admin"
+#    ports:
+#      - "5601:5601"
+
+
+

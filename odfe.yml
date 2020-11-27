@@ -1,0 +1,8 @@
+---
+- hosts: podmanubuntu1804
+  become: true
+  become_user: root
+  roles:
+    - role: podman
+    - role: ode
+      become_user: vagrant
