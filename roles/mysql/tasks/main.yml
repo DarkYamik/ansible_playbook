@@ -14,7 +14,16 @@
     dest: /etc/mysql.conf/my.cnf
     owner: "root"
     group: "root"
-    mode: "0644"
+    mode: "0755"
+
+- name: Prepare container logs path
+  become_user: root
+  file:
+    path: /var/log/containers
+    state: directory
+    owner: "vagrant"
+    group: "vagrant"
+    mode: "0664"
 
 - name: Kill running container
   become_user: vagrant
@@ -29,19 +38,42 @@
   pause:
     seconds: 15
 
-- name: Run Mysql container
+#- name: Run Mysql container
+#  become_user: vagrant
+#  command: >
+#   podman run  -d \
+#   --privileged \
+#   --name {{ inventory_hostname_short }} \
+#   --volume /etc/mysql.conf/my.cnf:/etc/my.cnf:ro \
+#   --volume /etc/mysql.data:/etc/mysql/lib:rw \
+#   -p=3306:3306/tcp \
+#   -p=33060:33060/tcp \
+#   -e MYSQL_ROOT_PASSWORD={{ mysql_master_password }} \
+#   docker.io/mysql/mysql-server:latest
+#  retries: 3
+#  delay: 3
+#  register: result
+#  until: result.rc == 0
+
+- name: Run Mysql Container
+  become: true
   become_user: vagrant
-  command: >
-   podman run  -d \
-   --privileged \
-   --name {{ inventory_hostname_short }} \
-   --volume /etc/mysql.conf/my.cnf:/etc/my.cnf:ro \
-   --volume /etc/mysql.data:/etc/mysql/lib:rw \
-   -p=3306:3306/tcp \
-   -p=33060:33060/tcp \
-   -e MYSQL_ROOT_PASSWORD={{ mysql_master_password }} \
-   docker.io/mysql/mysql-server:latest
-  retries: 3
-  delay: 3
-  register: result
-  until: result.rc == 0
+  containers.podman.podman_container:
+    name: "{{ inventory_hostname_short }}"
+    image: docker.io/mysql/mysql-server:latest
+    state: started
+    log_opt: path=/var/log/containers/{{ inventory_hostname_short }}.log
+    volume:
+     - "/etc/mysql.conf/my.cnf:/etc/my.cnf:ro"
+     - "/etc/mysql.data:/etc/mysql/lib:rw"
+    cmd_args:
+      - "-e MYSQL_ROOT_PASSWORD={{ mysql_master_password }}"
+      - "-e=ELASTICSEARCH_HOSTS=https://localhost:9200"
+      - "-e=ELASTICSEARCH_PASSWORD=admin"
+      - "-e=ELASTICSEARCH_USERNAME=admin"
+    ports:
+     - "3306:3306"
+     - "33060:33060"
+  register: podman_output
+- debug:
+    var: podman_output

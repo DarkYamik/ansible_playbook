@@ -60,7 +60,7 @@ Vagrant.configure("2") do |config|
 
             # Ubuntu 18.04 Mysqlmaster
     config.vm.define "mysqlmaster", autostart: false do |mysqlmaster|
-        mysqlmaster.vm.box = "ubuntu/bionic64"
+        mysqlmaster.vm.box = "generic/ubuntu1804"
         mysqlmaster.vm.box_check_update = true
         mysqlmaster.vm.hostname = "mysqlmaster"
         mysqlmaster.vm.network "public_network", auto_config: true
@@ -82,7 +82,7 @@ Vagrant.configure("2") do |config|
 
                 # Ubuntu 18.04 Mysqlslave
     config.vm.define "mysqlslave", autostart: false do |mysqlslave|
-        mysqlslave.vm.box = "ubuntu/bionic64"
+        mysqlslave.vm.box = "generic/ubuntu1804"
         mysqlslave.vm.box_check_update = true
         mysqlslave.vm.hostname = "mysqlslave"
         mysqlslave.vm.network "public_network", auto_config: true

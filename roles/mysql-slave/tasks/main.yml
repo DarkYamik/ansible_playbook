@@ -9,20 +9,20 @@
 #- debug:
 #    var: hostvars.mysqlmaster.master_status_position
 
-#- debug:
-#    var: hostvars.mysqlmaster.ansible_default_ipv4.address
+- debug:
+    var: hostvars.mysqlmaster.ansible_default_ipv4.address
 
 - name: change master to mysqlmaster
   shell: > 
     podman exec -it {{ inventory_hostname_short }} \ 
-    mysql -uroot -ppassword \
+    mysql -uroot -p{{ mysql_slave_password }} \
     -e "CHANGE MASTER TO MASTER_HOST='{{ hostvars.mysqlmaster.ansible_default_ipv4.address }}',
     MASTER_USER='slave_user',
-    MASTER_PASSWORD='password',
+    MASTER_PASSWORD='{{ mysql_slave_password }}',
     MASTER_LOG_FILE='{{ hostvars.mysqlmaster.master_status_binlog }}',
     MASTER_LOG_POS={{ hostvars.mysqlmaster.master_status_position }};"
 
 - name: Activate slave 
   shell: >
    podman exec -it {{ inventory_hostname_short }} \
-   mysql -uroot -ppassword -e "START SLAVE;"
+   mysql -uroot -p{{ mysql_slave_password }} -e "START SLAVE;"
